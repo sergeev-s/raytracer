@@ -6,6 +6,9 @@ type Vec3 struct {
 	X, Y, Z float64
 }
 
+type Point3 = Vec3
+type Color = Vec3
+
 func NewVec3(c [3]float64) Vec3 {
 	return Vec3{c[0], c[1], c[2]}
 }

@@ -1,32 +1,72 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"github.com/sergeev-s/raytracer/vec"
-	"os"
 	"github.com/sergeev-s/raytracer/helpers"
+	"github.com/sergeev-s/raytracer/ray"
+	"github.com/sergeev-s/raytracer/vec"
+	"log"
+	"math"
+	"os"
 )
 
 const (
-	IMAGE_WIDTH  = 256
-	IMAGE_HEIGHT = 256
+	IMAGE_WIDTH     = 1500
+	ASPECT_RATIO    = 16.0 / 9.0
+	VIEWPORT_HEIGHT = 2.0
+	FOCAL_LENGTH    = 1.0
 )
 
 func main() {
 	run()
 }
 
-func run() {
-	os.Stdout.Write([]byte("P3\n"))
-	fmt.Fprintf(os.Stdout, "%d %d\n", IMAGE_WIDTH, IMAGE_HEIGHT)
-	os.Stdout.Write([]byte("255\n"))
+func rayColor(ray ray.Ray) vec.Color {
+	unitDirection := ray.Direction.Unit()
+	var a = (unitDirection.Y + 1.0) * 0.5
+	var white = vec.Color{X: 1.0, Y: 1.0, Z: 1.0}
+	var blue = vec.Color{X: 0.5, Y: 0.7, Z: 1.0}
+	return white.Scale(1.0 - a).Add(blue.Scale(a))
+}
 
-	for i := 0; i < IMAGE_HEIGHT; i += 1 {
-		currentLine := IMAGE_HEIGHT - i
+func run() {
+	var (
+		imageHeight       = int(math.Max(1, math.Floor(IMAGE_WIDTH/ASPECT_RATIO)))
+		viewportWidth     = VIEWPORT_HEIGHT * (float64(IMAGE_WIDTH) / float64(imageHeight))
+		cameraCenter      = vec.Point3{X: 0, Y: 0, Z: 0}
+		viewportU         = vec.Vec3{X: viewportWidth, Y: 0, Z: 0}
+		viewportV         = vec.Vec3{X: 0, Y: -VIEWPORT_HEIGHT, Z: 0}
+		pixelDeltaU       = viewportU.Divide(float64(IMAGE_WIDTH - 1))
+		pixelDeltaV       = viewportV.Divide(float64(imageHeight - 1))
+		viewportUpperLeft = cameraCenter.Sub(vec.Vec3{X: 0, Y: 0, Z: FOCAL_LENGTH}).Sub(viewportU.Divide(2)).Sub(viewportV.Divide(2))
+		pixel00Loc        = viewportUpperLeft.Add(pixelDeltaU.Divide(2)).Add(pixelDeltaV.Divide(2))
+	)
+
+	f, err := os.Create("image.ppm")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+	defer w.Flush()
+
+	w.Write([]byte("P3\n"))
+	fmt.Fprintf(w, "%d %d\n", IMAGE_WIDTH, imageHeight)
+	w.Write([]byte("255\n"))
+
+	for i := 0; i < imageHeight; i += 1 {
+		currentLine := imageHeight - i
 		fmt.Fprintf(os.Stderr, "Scanlines remaining: %d  \r", currentLine)
 		for j := 0; j < IMAGE_WIDTH; j += 1 {
-			color := vec.NewVec3([3]float64{float64(j) / float64(IMAGE_WIDTH-1), float64(i) / float64(IMAGE_HEIGHT-1), 0})
-			helpers.WriteColor(color)
+			pixelCenter := pixel00Loc.Add(pixelDeltaV.Scale(float64(i))).Add(pixelDeltaU.Scale(float64(j)))
+			rayDirection := pixelCenter.Sub(cameraCenter)
+			r := ray.NewRay(cameraCenter, rayDirection)
+
+			color := rayColor(r)
+			// color := vec.Color{X: float64(j) / float64(IMAGE_WIDTH-1), Y: float64(i) / float64(IMAGE_HEIGHT-1), Z: 0}
+			helpers.WriteColor(w, color)
 		}
 	}
 
