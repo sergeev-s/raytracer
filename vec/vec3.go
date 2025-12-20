@@ -10,62 +10,70 @@ func NewVec3(c [3]float64) Vec3 {
 	return Vec3{c[0], c[1], c[2]}
 }
 
-func (vec *Vec3) GetX() float64 {
-	return vec.X
-}
+// func (v Vec3) GetX() float64 {
+// 	return v.X
+// }
 
-func (vec *Vec3) GetY() float64 {
-	return vec.Y
-}
+// func (v Vec3) GetY() float64 {
+// 	return v.Y
+// }
 
-func (vec *Vec3) GetZ() float64 {
-	return vec.Z
-}
+// func (v Vec3) GetZ() float64 {
+// 	return v.Z
+// }
 
-func (vec Vec3) Negate() Vec3 {
+func (v Vec3) Negate() Vec3 {
 	return Vec3{
-		X: -vec.X,
-		Y: -vec.Y,
-		Z: -vec.Z,
+		X: -v.X,
+		Y: -v.Y,
+		Z: -v.Z,
 	}
 }
 
-func (vec1 Vec3) Add(vec2 Vec3) Vec3 {
-	return Vec3{vec1.X + vec2.X, vec1.Y + vec2.Y, vec1.Z + vec2.Z}
+func (v Vec3) Add(u Vec3) Vec3 {
+	return Vec3{v.X + u.X, v.Y + u.Y, v.Z + u.Z}
 }
 
-func (vec1 Vec3) Sub(vec2 Vec3) Vec3 {
-	return Vec3{vec2.X - vec1.X, vec2.Y - vec1.Y, vec2.Z - vec1.Z}
+func (v Vec3) Sub(u Vec3) Vec3 {
+	return Vec3{v.X - u.X, v.Y - u.Y, v.Z - u.Z}
 }
 
-func (vec1 Vec3) Scale(s float64) Vec3 {
-	return Vec3{vec1.X * s, vec1.Y * s, vec1.Z * s}
+func (v Vec3) Scale(s float64) Vec3 {
+	return Vec3{v.X * s, v.Y * s, v.Z * s}
 }
 
-func Divide(vec *Vec3, s float64) Vec3 {
-	return vec.Scale(1 / s)
+func (v Vec3) Divide(s float64) Vec3 {
+	return v.Scale(1 / s)
 }
 
-func (vec Vec3) LengthSquared() float64 {
-	return vec.X*vec.X + vec.Y*vec.Y + vec.Z*vec.Z
+func (v Vec3) LengthSquared() float64 {
+	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
 
-func (vec Vec3) Length() float64 {
-	return math.Sqrt(vec.LengthSquared())
+func (v Vec3) Length() float64 {
+	return math.Sqrt(v.LengthSquared())
 }
 
-func (vec1 *Vec3) Dot(vec2 *Vec3) float64 {
-	return vec2.X*vec1.X + vec2.Y*vec1.Y + vec2.Z*vec1.Z
+func (v Vec3) Dot(u Vec3) float64 {
+	return u.X*v.X + u.Y*v.Y + u.Z*v.Z
 }
 
-func (vec1 *Vec3) Cross(vec2 *Vec3) Vec3 {
+func (v Vec3) Cross(u Vec3) Vec3 {
 	return Vec3{
-		vec2.Y*vec1.Z - vec2.Z*vec1.Y,
-		vec2.Z*vec1.X - vec2.X*vec1.Z,
-		vec2.X*vec1.Y - vec2.Y*vec1.X,
+		v.Y*u.Z - v.Z*u.Y,
+		v.Z*u.X - v.X*u.Z,
+		v.X*u.Y - v.Y*u.X,
 	}
 }
 
-func (vec Vec3) Unit() Vec3 {
-	return vec.Scale(1 / vec.Length())
+func (v Vec3) Unit() Vec3 {
+	if v.NearZero() {
+		return Vec3{}
+	}
+	return v.Scale(1 / v.Length())
+}
+
+func (v Vec3) NearZero() bool {
+	const eps = 1e-8
+	return math.Abs(v.X) < eps && math.Abs(v.Y) < eps && math.Abs(v.Z) < eps
 }

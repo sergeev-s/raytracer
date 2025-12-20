@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/sergeev-s/raytracer/vec"
 	"os"
+	"github.com/sergeev-s/raytracer/helpers"
 )
 
 const (
@@ -25,7 +26,7 @@ func run() {
 		fmt.Fprintf(os.Stderr, "Scanlines remaining: %d  \r", currentLine)
 		for j := 0; j < IMAGE_WIDTH; j += 1 {
 			color := vec.NewVec3([3]float64{float64(j) / float64(IMAGE_WIDTH-1), float64(i) / float64(IMAGE_HEIGHT-1), 0})
-			WriteColor(color)
+			helpers.WriteColor(color)
 		}
 	}
 
