@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/sergeev-s/raytracer/helpers"
-	"github.com/sergeev-s/raytracer/ray"
-	"github.com/sergeev-s/raytracer/vec"
 	"log"
 	"math"
 	"os"
+
+	"github.com/sergeev-s/raytracer/helpers"
+	"github.com/sergeev-s/raytracer/ray"
+	"github.com/sergeev-s/raytracer/vec"
 )
 
 const (
@@ -22,7 +23,20 @@ func main() {
 	run()
 }
 
+func hitSphere(center vec.Point3, radius float64, ray ray.Ray) bool {
+	oc := center.Sub(ray.Origin)
+	a := ray.Direction.Dot(ray.Direction)
+	b := -2 * ray.Direction.Dot(oc)
+	c := oc.Dot(oc) - radius*radius
+
+	discriminant := b*b - 4*a*c
+	return discriminant >= 0
+}
+
 func rayColor(ray ray.Ray) vec.Color {
+	if (hitSphere(vec.Vec3{X: 0, Y: 0, Z: -1}, 0.5, ray)) {
+		return vec.Color{X: 1, Y: 0, Z: 0}
+	}
 	unitDirection := ray.Direction.Unit()
 	var a = (unitDirection.Y + 1.0) * 0.5
 	var white = vec.Color{X: 1.0, Y: 1.0, Z: 1.0}
