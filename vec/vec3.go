@@ -13,18 +13,6 @@ func NewVec3(c [3]float64) Vec3 {
 	return Vec3{c[0], c[1], c[2]}
 }
 
-// func (v Vec3) GetX() float64 {
-// 	return v.X
-// }
-
-// func (v Vec3) GetY() float64 {
-// 	return v.Y
-// }
-
-// func (v Vec3) GetZ() float64 {
-// 	return v.Z
-// }
-
 func (v Vec3) Negate() Vec3 {
 	return Vec3{
 		X: -v.X,

@@ -65,7 +65,6 @@ func run() {
 			r := ray.NewRay(cameraCenter, rayDirection)
 
 			color := rayColor(r)
-			// color := vec.Color{X: float64(j) / float64(IMAGE_WIDTH-1), Y: float64(i) / float64(IMAGE_HEIGHT-1), Z: 0}
 			helpers.WriteColor(w, color)
 		}
 	}
