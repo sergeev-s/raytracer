@@ -15,19 +15,19 @@ type Sphere struct {
 func NewSphere(center vec.Point3, radius float64) Sphere {
 	return Sphere{
 		Center: center,
-		Radius: radius,
+		Radius: math.Max(0, radius),
 	}
 }
 
-func (sphere *Sphere) Hit(r ray.Ray, tMin, tMax float64) (*hittable.HitRecord, bool) {
-	oc := r.Origin.Sub(sphere.Center)
+func (sphere Sphere) Hit(r ray.Ray, tMin, tMax float64) (hittable.HitRecord, bool) {
+	oc := sphere.Center.Sub(r.Origin)
 	a := r.Direction.LengthSquared()
 	b := -2 * r.Direction.Dot(oc)
 	c := oc.LengthSquared() - sphere.Radius*sphere.Radius
 	discriminant := b*b - 4*a*c
 
 	if discriminant < 0 {
-		return nil, false
+		return hittable.HitRecord{}, false
 	}
 
 	root := (-b - math.Sqrt(discriminant)) / (2 * a)
@@ -35,7 +35,7 @@ func (sphere *Sphere) Hit(r ray.Ray, tMin, tMax float64) (*hittable.HitRecord, b
 	if root <= tMin || root >= tMax {
 		root = (-b + math.Sqrt(discriminant)) / (2 * a)
 		if root <= tMin || root >= tMax {
-			return nil, false
+			return hittable.HitRecord{}, false
 		}
 	}
 
@@ -47,7 +47,7 @@ func (sphere *Sphere) Hit(r ray.Ray, tMin, tMax float64) (*hittable.HitRecord, b
 		normal = outwardNormal.Negate()
 	}
 
-	return &hittable.HitRecord{
+	return hittable.HitRecord{
 		P:      p,
 		Normal: normal,
 		T:      root,

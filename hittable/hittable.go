@@ -12,5 +12,5 @@ type HitRecord struct {
 }
 
 type Hittable interface {
-    Hit(r ray.Ray, tMin, tMax float64) (*HitRecord, bool)
+    Hit(r ray.Ray, tMin, tMax float64) (HitRecord, bool)
 }

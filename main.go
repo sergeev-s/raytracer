@@ -8,11 +8,11 @@ import (
 	"os"
 
 	"github.com/sergeev-s/raytracer/helpers"
-	"github.com/sergeev-s/raytracer/ray"
-	"github.com/sergeev-s/raytracer/vec"
 	"github.com/sergeev-s/raytracer/hittable"
-	"github.com/sergeev-s/raytracer/sphere"
 	"github.com/sergeev-s/raytracer/hittable/list"
+	"github.com/sergeev-s/raytracer/ray"
+	"github.com/sergeev-s/raytracer/sphere"
+	"github.com/sergeev-s/raytracer/vec"
 )
 
 const (
@@ -27,10 +27,10 @@ func main() {
 }
 
 func rayColor(ray ray.Ray, world hittable.Hittable) vec.Color {
-	hitRecord, hitRecordBool := world.Hit(ray, 0.000, math.Inf(1))
+	hitRecord, hitRecordBool := world.Hit(ray, 0, math.Inf(1))
 
-	if (hitRecordBool != false) {
-		return hitRecord.Normal.Add(vec.Vec3{X: 1, Y: 1, Z: 1}).Divide(2)
+	if hitRecordBool != false {
+		return hitRecord.Normal.Add(vec.Color{X: 1, Y: 1, Z: 1}).Divide(2)
 	}
 
 	unitDirection := ray.Direction.Unit()
@@ -66,18 +66,13 @@ func run() {
 	fmt.Fprintf(w, "%d %d\n", IMAGE_WIDTH, imageHeight)
 	w.Write([]byte("255\n"))
 
-	world := hittableList.HittableList{
-		Hittables: []hittable.Hittable{
-			&sphere.Sphere{
-				Center: vec.Point3{X: 0, Y: 0, Z: -1},
-				Radius: 0.5,
-			},
-			&sphere.Sphere{
-				Center: vec.Point3{X: 0, Y: -100.5, Z: -1},
-				Radius: 100,
-			},
-		},
-	}		
+	world := &hittableList.HittableList{}
+
+	sphere1 := sphere.NewSphere(vec.Point3{X: 0, Y: 0, Z: -1}, 0.5)
+	world.Add(&sphere1)
+
+	sphere2 := sphere.NewSphere(vec.Point3{X: 0, Y: -100.5, Z: -1}, 100)
+	world.Add(&sphere2)			
 
 	for i := 0; i < imageHeight; i += 1 {
 		currentLine := imageHeight - i
@@ -87,7 +82,7 @@ func run() {
 			rayDirection := pixelCenter.Sub(cameraCenter)
 			r := ray.NewRay(cameraCenter, rayDirection)
 
-			color := rayColor(r, &world)
+			color := rayColor(r, world)
 			helpers.WriteColor(w, color)
 		}
 	}
