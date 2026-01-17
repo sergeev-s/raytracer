@@ -10,10 +10,13 @@ import (
 	"github.com/sergeev-s/raytracer/helpers"
 	"github.com/sergeev-s/raytracer/ray"
 	"github.com/sergeev-s/raytracer/vec"
+	"github.com/sergeev-s/raytracer/hittable"
+	"github.com/sergeev-s/raytracer/sphere"
+	"github.com/sergeev-s/raytracer/hittable/list"
 )
 
 const (
-	IMAGE_WIDTH     = 1500
+	IMAGE_WIDTH     = 400
 	ASPECT_RATIO    = 16.0 / 9.0
 	VIEWPORT_HEIGHT = 2.0
 	FOCAL_LENGTH    = 1.0
@@ -23,20 +26,13 @@ func main() {
 	run()
 }
 
-func hitSphere(center vec.Point3, radius float64, ray ray.Ray) bool {
-	oc := center.Sub(ray.Origin)
-	a := ray.Direction.Dot(ray.Direction)
-	b := -2 * ray.Direction.Dot(oc)
-	c := oc.Dot(oc) - radius*radius
+func rayColor(ray ray.Ray, world hittable.Hittable) vec.Color {
+	hitRecord, hitRecordBool := world.Hit(ray, 0.000, math.Inf(1))
 
-	discriminant := b*b - 4*a*c
-	return discriminant >= 0
-}
-
-func rayColor(ray ray.Ray) vec.Color {
-	if (hitSphere(vec.Vec3{X: 0, Y: 0, Z: -1}, 0.5, ray)) {
-		return vec.Color{X: 1, Y: 0, Z: 0}
+	if (hitRecordBool != false) {
+		return hitRecord.Normal.Add(vec.Vec3{X: 1, Y: 1, Z: 1}).Divide(2)
 	}
+
 	unitDirection := ray.Direction.Unit()
 	var a = (unitDirection.Y + 1.0) * 0.5
 	var white = vec.Color{X: 1.0, Y: 1.0, Z: 1.0}
@@ -70,6 +66,19 @@ func run() {
 	fmt.Fprintf(w, "%d %d\n", IMAGE_WIDTH, imageHeight)
 	w.Write([]byte("255\n"))
 
+	world := hittableList.HittableList{
+		Hittables: []hittable.Hittable{
+			&sphere.Sphere{
+				Center: vec.Point3{X: 0, Y: 0, Z: -1},
+				Radius: 0.5,
+			},
+			&sphere.Sphere{
+				Center: vec.Point3{X: 0, Y: -100.5, Z: -1},
+				Radius: 100,
+			},
+		},
+	}		
+
 	for i := 0; i < imageHeight; i += 1 {
 		currentLine := imageHeight - i
 		fmt.Fprintf(os.Stderr, "Scanlines remaining: %d  \r", currentLine)
@@ -78,7 +87,7 @@ func run() {
 			rayDirection := pixelCenter.Sub(cameraCenter)
 			r := ray.NewRay(cameraCenter, rayDirection)
 
-			color := rayColor(r)
+			color := rayColor(r, &world)
 			helpers.WriteColor(w, color)
 		}
 	}
