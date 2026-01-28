@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	// "math/rand"
 
 	"github.com/sergeev-s/raytracer/interval"
 	"github.com/sergeev-s/raytracer/vec"
@@ -24,8 +23,3 @@ func WriteColor(w io.Writer, color vec.Color) {
 
 	fmt.Fprintf(w, "%d %d %d\n", int(r255), int(g255), int(b255))
 }
-
-// func randomInterval(min, max float64) float64 {
-// 	return min + (max-min)*rand.Float64()
-
-// }

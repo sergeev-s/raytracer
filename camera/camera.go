@@ -11,9 +11,11 @@ import (
 	"github.com/sergeev-s/raytracer/helpers"
 	"github.com/sergeev-s/raytracer/hittable"
 	"github.com/sergeev-s/raytracer/interval"
-	"github.com/sergeev-s/raytracer/ray"
+	// "github.com/sergeev-s/raytracer/ray"
 	"github.com/sergeev-s/raytracer/vec"
 )
+
+import raypkg "github.com/sergeev-s/raytracer/ray"
 
 type Camera struct {
 	imageWidth        int
@@ -30,6 +32,7 @@ const (
 	FOCAL_LENGTH       = 1.0
 	SAMPLE_PER_PIXEL   = 100
 	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLE_PER_PIXEL)
+	MAX_DEPTH          = 50
 )
 
 func NewCamera(aspectRatio float64, imageWidth int) Camera {
@@ -76,8 +79,8 @@ func (camera Camera) Render(world hittable.Hittable) {
 			pixelColor := vec.Color{X: 0, Y: 0, Z: 0}
 			for sample := 0; sample < SAMPLE_PER_PIXEL; sample += 1 {
 				ray := camera.GetRay(i, j)
-				pixelColor = pixelColor.Add(rayColor(ray, world))
-			}	
+				pixelColor = pixelColor.Add(rayColor(ray, MAX_DEPTH, world))
+			}
 			helpers.WriteColor(w, pixelColor.Scale(PIXEL_SAMPLE_SCALE))
 		}
 	}
@@ -85,29 +88,32 @@ func (camera Camera) Render(world hittable.Hittable) {
 	os.Stderr.Write([]byte("Done!                                           \n"))
 }
 
-func (camera Camera) GetRay(i, j int) ray.Ray {
+func (camera Camera) GetRay(i, j int) raypkg.Ray {
 	offsetI := rand.Float64() - 0.5
 	offsetJ := rand.Float64() - 0.5
 
-	pixelCenter := camera.pixel00Loc.Add(camera.pixelDeltaV.Scale(float64(i)+offsetI)).Add(camera.pixelDeltaU.Scale(float64(j)+offsetJ))
+	pixelCenter := camera.pixel00Loc.Add(camera.pixelDeltaV.Scale(float64(i) + offsetI)).Add(camera.pixelDeltaU.Scale(float64(j) + offsetJ))
 	rayDirection := pixelCenter.Sub(camera.center)
-	return ray.NewRay(camera.center, rayDirection)
+	return raypkg.NewRay(camera.center, rayDirection)
 }
 
-func rayColor(ray ray.Ray, world hittable.Hittable) vec.Color {
-	interval := interval.Interval{Min: 0, Max: math.Inf(1)}
+func rayColor(ray raypkg.Ray, depth int, world hittable.Hittable) vec.Color {
+	if depth <= 0 {
+		return vec.Color{X: 0, Y: 0, Z: 0}
+	}
+	interval := interval.Interval{Min: 0.001, Max: math.Inf(1)}
 	hitRecord, hit := world.Hit(ray, interval)
 	if hit {
-		return hitRecord.Normal.Add(vec.Color{X: 1, Y: 1, Z: 1}).Divide(2)
+		reflectDirection := vec.RandomOnHemisphere(hitRecord.Normal)
+		return rayColor(raypkg.NewRay(hitRecord.P, reflectDirection), depth - 1, world).Scale(0.5)
 	}
 
 	unitDirection := ray.Direction.Unit()
 
 	var (
-		a = (unitDirection.Y + 1.0) * 0.5
-	  white = vec.Color{X: 1.0, Y: 1.0, Z: 1.0}
-	  blue = vec.Color{X: 0.5, Y: 0.7, Z: 1.0}
-
+		a     = (unitDirection.Y + 1.0) * 0.5
+		white = vec.Color{X: 1.0, Y: 1.0, Z: 1.0}
+		blue  = vec.Color{X: 0.5, Y: 0.7, Z: 1.0}
 	)
 	return white.Scale(1.0 - a).Add(blue.Scale(a))
 }
