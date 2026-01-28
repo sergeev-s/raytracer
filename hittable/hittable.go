@@ -3,6 +3,7 @@ package hittable
 import (
 	"github.com/sergeev-s/raytracer/ray"
 	"github.com/sergeev-s/raytracer/vec"
+	"github.com/sergeev-s/raytracer/interval"
 )
 
 type HitRecord struct {
@@ -12,5 +13,5 @@ type HitRecord struct {
 }
 
 type Hittable interface {
-    Hit(r ray.Ray, tMin, tMax float64) (HitRecord, bool)
+    Hit(r ray.Ray, rayT interval.Interval) (HitRecord, bool)
 }

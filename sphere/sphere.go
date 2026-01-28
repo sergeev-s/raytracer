@@ -1,10 +1,12 @@
 package sphere
 
 import (
+	"math"
+
 	"github.com/sergeev-s/raytracer/hittable"
+	"github.com/sergeev-s/raytracer/interval"
 	"github.com/sergeev-s/raytracer/ray"
 	"github.com/sergeev-s/raytracer/vec"
-	"math"
 )
 
 type Sphere struct {
@@ -19,7 +21,7 @@ func NewSphere(center vec.Point3, radius float64) Sphere {
 	}
 }
 
-func (sphere Sphere) Hit(r ray.Ray, tMin, tMax float64) (hittable.HitRecord, bool) {
+func (sphere Sphere) Hit(r ray.Ray, rayT interval.Interval) (hittable.HitRecord, bool) {
 	oc := sphere.Center.Sub(r.Origin)
 	a := r.Direction.LengthSquared()
 	b := -2 * r.Direction.Dot(oc)
@@ -32,9 +34,9 @@ func (sphere Sphere) Hit(r ray.Ray, tMin, tMax float64) (hittable.HitRecord, boo
 
 	root := (-b - math.Sqrt(discriminant)) / (2 * a)
 
-	if root <= tMin || root >= tMax {
+	if !rayT.Surrounds(root) {
 		root = (-b + math.Sqrt(discriminant)) / (2 * a)
-		if root <= tMin || root >= tMax {
+		if !rayT.Surrounds(root) {
 			return hittable.HitRecord{}, false
 		}
 	}

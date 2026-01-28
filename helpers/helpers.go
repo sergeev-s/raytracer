@@ -2,9 +2,12 @@ package helpers
 
 import (
 	"fmt"
-	"math"
-	"github.com/sergeev-s/raytracer/vec"
 	"io"
+	"math"
+	// "math/rand"
+
+	"github.com/sergeev-s/raytracer/interval"
+	"github.com/sergeev-s/raytracer/vec"
 )
 
 var rgbValue float64 = 255.999
@@ -14,9 +17,15 @@ func WriteColor(w io.Writer, color vec.Color) {
 	g := color.Y
 	b := color.Z
 
-	r255 := math.Floor(r * rgbValue)
-	g255 := math.Floor(g * rgbValue)
-	b255 := math.Floor(b * rgbValue)
+	intensity := interval.Interval{Min: 0.0, Max: 0.999}
+	r255 := math.Floor(intensity.Clamp(r) * rgbValue)
+	g255 := math.Floor(intensity.Clamp(g) * rgbValue)
+	b255 := math.Floor(intensity.Clamp(b) * rgbValue)
 
 	fmt.Fprintf(w, "%d %d %d\n", int(r255), int(g255), int(b255))
 }
+
+// func randomInterval(min, max float64) float64 {
+// 	return min + (max-min)*rand.Float64()
+
+// }
