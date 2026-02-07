@@ -12,6 +12,10 @@ type Vec3 struct {
 type Point3 = Vec3
 type Color = Vec3
 
+func Reflect(v, n Vec3) Vec3 {
+	return v.Sub(n.Scale(v.Dot(n) * 2))
+}
+
 func Random() Vec3 {
 	return Vec3{
 		X: RandomInterval(-1, 1),
@@ -41,6 +45,10 @@ func RandomOnHemisphere(normal Vec3) Vec3 {
 
 func NewVec3(c [3]float64) Vec3 {
 	return Vec3{c[0], c[1], c[2]}
+}
+
+func (v Vec3) Mult(u Vec3) Vec3 {
+	return Vec3{v.X * u.X, v.Y * u.Y, v.Z * u.Z}
 }
 
 func (v Vec3) Negate() Vec3 {

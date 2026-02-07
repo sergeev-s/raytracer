@@ -1,7 +1,7 @@
 package hittableList
 
 import (
-	"github.com/sergeev-s/raytracer/hittable"
+	"github.com/sergeev-s/raytracer/hittableCommon/hittable"
 	"github.com/sergeev-s/raytracer/interval"
 	"github.com/sergeev-s/raytracer/ray"
 )

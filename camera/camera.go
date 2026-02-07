@@ -9,9 +9,8 @@ import (
 	"os"
 
 	"github.com/sergeev-s/raytracer/helpers"
-	"github.com/sergeev-s/raytracer/hittable"
+	"github.com/sergeev-s/raytracer/hittableCommon/hittable"
 	"github.com/sergeev-s/raytracer/interval"
-	// "github.com/sergeev-s/raytracer/ray"
 	"github.com/sergeev-s/raytracer/vec"
 )
 
@@ -30,7 +29,7 @@ type Camera struct {
 const (
 	VIEWPORT_HEIGHT    = 2.0
 	FOCAL_LENGTH       = 1.0
-	SAMPLES_PER_PIXEL   = 100
+	SAMPLES_PER_PIXEL  = 100
 	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLES_PER_PIXEL)
 	MAX_DEPTH          = 50
 )
@@ -103,9 +102,16 @@ func rayColor(ray raypkg.Ray, depth int, world hittable.Hittable) vec.Color {
 	}
 	interval := interval.Interval{Min: 0.001, Max: math.Inf(1)}
 	hitRecord, hit := world.Hit(ray, interval)
+
 	if hit {
-		reflectDirection := hitRecord.Normal.Add(vec.RandomUnitVector())
-		return rayColor(raypkg.NewRay(hitRecord.P, reflectDirection), depth - 1, world).Scale(0.5)
+		if hitRecord.Material == nil {
+			return vec.Color{X: 0, Y: 0, Z: 0}
+		}
+		scatteredRay, attenuation, isScattered := hitRecord.Material.Scatter(ray, hitRecord)
+		if isScattered {
+			return rayColor(scatteredRay, depth-1, world).Mult(attenuation)
+		}
+		return vec.Color{X: 0, Y: 0, Z: 0}
 	}
 
 	unitDirection := ray.Direction.Unit()

@@ -3,21 +3,23 @@ package sphere
 import (
 	"math"
 
-	"github.com/sergeev-s/raytracer/hittable"
+	"github.com/sergeev-s/raytracer/hittableCommon/hittable"
 	"github.com/sergeev-s/raytracer/interval"
 	"github.com/sergeev-s/raytracer/ray"
 	"github.com/sergeev-s/raytracer/vec"
 )
 
 type Sphere struct {
-	Center vec.Point3
-	Radius float64
+	Center   vec.Point3
+	Radius   float64
+	Material hittable.Material
 }
 
-func NewSphere(center vec.Point3, radius float64) Sphere {
+func NewSphere(center vec.Point3, radius float64, material hittable.Material) Sphere {
 	return Sphere{
-		Center: center,
-		Radius: math.Max(0, radius),
+		Center:   center,
+		Radius:   math.Max(0, radius),
+		Material: material,
 	}
 }
 
@@ -50,8 +52,9 @@ func (sphere Sphere) Hit(r ray.Ray, rayT interval.Interval) (hittable.HitRecord,
 	}
 
 	return hittable.HitRecord{
-		P:      p,
-		Normal: normal,
-		T:      root,
+		P:        p,
+		Normal:   normal,
+		T:        root,
+		Material: sphere.Material,
 	}, true
 }
