@@ -30,8 +30,8 @@ type Camera struct {
 const (
 	VIEWPORT_HEIGHT    = 2.0
 	FOCAL_LENGTH       = 1.0
-	SAMPLE_PER_PIXEL   = 1000
-	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLE_PER_PIXEL)
+	SAMPLES_PER_PIXEL   = 100
+	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLES_PER_PIXEL)
 	MAX_DEPTH          = 50
 )
 
@@ -77,7 +77,7 @@ func (camera Camera) Render(world hittable.Hittable) {
 		fmt.Fprintf(os.Stderr, "Scanlines remaining: %d  \r", currentLine)
 		for j := 0; j < camera.imageWidth; j += 1 {
 			pixelColor := vec.Color{X: 0, Y: 0, Z: 0}
-			for sample := 0; sample < SAMPLE_PER_PIXEL; sample += 1 {
+			for sample := 0; sample < SAMPLES_PER_PIXEL; sample += 1 {
 				ray := camera.GetRay(i, j)
 				pixelColor = pixelColor.Add(rayColor(ray, MAX_DEPTH, world))
 			}
