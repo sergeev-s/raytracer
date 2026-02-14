@@ -45,9 +45,9 @@ func (sphere Sphere) Hit(r ray.Ray, rayT interval.Interval) (hittable.HitRecord,
 
 	p := r.At(root)
 	outwardNormal := p.Sub(sphere.Center).Divide(sphere.Radius)
-	inFrontFace := r.Direction.Dot(outwardNormal) < 0
+	isFrontFace := r.Direction.Dot(outwardNormal) < 0
 	normal := outwardNormal
-	if !inFrontFace {
+	if !isFrontFace {
 		normal = outwardNormal.Negate()
 	}
 
@@ -56,5 +56,6 @@ func (sphere Sphere) Hit(r ray.Ray, rayT interval.Interval) (hittable.HitRecord,
 		Normal:   normal,
 		T:        root,
 		Material: sphere.Material,
+		IsFrontFace: isFrontFace,
 	}, true
 }

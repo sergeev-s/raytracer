@@ -29,7 +29,7 @@ type Camera struct {
 const (
 	VIEWPORT_HEIGHT    = 2.0
 	FOCAL_LENGTH       = 1.0
-	SAMPLES_PER_PIXEL  = 100
+	SAMPLES_PER_PIXEL  = 1000
 	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLES_PER_PIXEL)
 	MAX_DEPTH          = 50
 )

@@ -110,3 +110,15 @@ func (v Vec3) NearZero() bool {
 func RandomInterval(min, max float64) float64 {
 	return min + (max-min)*rand.Float64()
 }
+
+func (v Vec3) GetUnitVec() Vec3 {
+	vLen := v.Length()
+	return v.Divide(vLen)
+}
+
+func (uv Vec3) Refract(n Vec3, etaiOverEtat float64) Vec3 {
+	cosTheta := math.Min(uv.Negate().Dot(n), 1.0)
+	rOutPerp := uv.Add(n.Scale(cosTheta)).Scale(etaiOverEtat)
+	rOutParallel := n.Scale(-math.Sqrt(math.Abs(1.0 - rOutPerp.LengthSquared())))
+	return rOutPerp.Add(rOutParallel)	
+}
