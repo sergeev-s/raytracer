@@ -27,20 +27,24 @@ type Camera struct {
 }
 
 const (
-	VIEWPORT_HEIGHT    = 2.0
 	FOCAL_LENGTH       = 1.0
-	SAMPLES_PER_PIXEL  = 1000
+	SAMPLES_PER_PIXEL  = 300
 	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLES_PER_PIXEL)
-	MAX_DEPTH          = 50
+	MAX_DEPTH          = 120
+	VFOV				= 55.0
 )
+
 
 func NewCamera(aspectRatio float64, imageWidth int) Camera {
 	center := vec.Point3{X: 0, Y: 0, Z: 0}
 	var (
 		imageHeight       = int(math.Max(1, math.Floor(float64(imageWidth)/aspectRatio)))
-		viewportWidth     = VIEWPORT_HEIGHT * (float64(imageWidth) / float64(imageHeight))
+		theta = helpers.DegreesToRadians(VFOV)
+		h = math.Tan(theta / 2) 
+		viewportHeight = h * 2 * FOCAL_LENGTH
+		viewportWidth     = viewportHeight * (float64(imageWidth) / float64(imageHeight))
 		viewportU         = vec.Vec3{X: viewportWidth, Y: 0, Z: 0}
-		viewportV         = vec.Vec3{X: 0, Y: -VIEWPORT_HEIGHT, Z: 0}
+		viewportV         = vec.Vec3{X: 0, Y: -viewportHeight, Z: 0}
 		pixelDeltaU       = viewportU.Divide(float64(imageWidth - 1))
 		pixelDeltaV       = viewportV.Divide(float64(imageHeight - 1))
 		viewportUpperLeft = center.Sub(vec.Vec3{X: 0, Y: 0, Z: FOCAL_LENGTH}).Sub(viewportU.Divide(2)).Sub(viewportV.Divide(2))
