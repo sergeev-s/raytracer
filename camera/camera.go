@@ -24,30 +24,38 @@ type Camera struct {
 	pixelDeltaV       vec.Vec3
 	pixel00Loc        vec.Point3
 	center            vec.Point3
+	vpov              float64
+	lookFrom          vec.Point3
+	lookAt            vec.Point3
+	vUp               vec.Vec3
 }
 
 const (
 	FOCAL_LENGTH       = 1.0
-	SAMPLES_PER_PIXEL  = 300
+	SAMPLES_PER_PIXEL  = 100
 	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLES_PER_PIXEL)
 	MAX_DEPTH          = 120
-	VFOV				= 55.0
+	// VFOV               = 55.0
 )
 
-
-func NewCamera(aspectRatio float64, imageWidth int) Camera {
+// func NewCamera(aspectRatio float64, imageWidth int) Camera
+func NewCamera(aspectRatio float64, imageWidth int, vpov float64, lookFrom vec.Point3, lookAt vec.Point3, vUp vec.Vec3) Camera {
 	center := vec.Point3{X: 0, Y: 0, Z: 0}
 	var (
 		imageHeight       = int(math.Max(1, math.Floor(float64(imageWidth)/aspectRatio)))
-		theta = helpers.DegreesToRadians(VFOV)
-		h = math.Tan(theta / 2) 
-		viewportHeight = h * 2 * FOCAL_LENGTH
+		focalLength       = lookFrom.Sub(lookAt).Length()
+		theta             = helpers.DegreesToRadians(vpov)
+		h                 = math.Tan(theta / 2)
+		viewportHeight    = h * 2 * focalLength
 		viewportWidth     = viewportHeight * (float64(imageWidth) / float64(imageHeight))
-		viewportU         = vec.Vec3{X: viewportWidth, Y: 0, Z: 0}
-		viewportV         = vec.Vec3{X: 0, Y: -viewportHeight, Z: 0}
+		w                 = lookFrom.Sub(lookAt).Unit()
+		u                 = vUp.Cross(w).Unit()
+		v                 = w.Cross(u)
+		viewportU         = u.Scale(viewportWidth)
+		viewportV         = v.Scale(viewportHeight)
 		pixelDeltaU       = viewportU.Divide(float64(imageWidth - 1))
 		pixelDeltaV       = viewportV.Divide(float64(imageHeight - 1))
-		viewportUpperLeft = center.Sub(vec.Vec3{X: 0, Y: 0, Z: FOCAL_LENGTH}).Sub(viewportU.Divide(2)).Sub(viewportV.Divide(2))
+		viewportUpperLeft = center.Sub(v.Scale(focalLength)).Sub(viewportU.Divide(2)).Sub(viewportV.Divide(2))
 		pixel00Loc        = viewportUpperLeft.Add(pixelDeltaU.Divide(2)).Add(pixelDeltaV.Divide(2))
 	)
 
@@ -56,7 +64,7 @@ func NewCamera(aspectRatio float64, imageWidth int) Camera {
 		pixelDeltaU:       pixelDeltaU,
 		pixelDeltaV:       pixelDeltaV,
 		pixel00Loc:        pixel00Loc,
-		center:            center,
+		center:            lookFrom,
 	}
 }
 
