@@ -24,6 +24,8 @@ type Camera struct {
 	pixelDeltaV       vec.Vec3
 	pixel00Loc        vec.Point3
 	center            vec.Point3
+	defocusDiskU vec.Vec3
+    defocusDiskV vec.Vec3
 	vpov              float64
 	lookFrom          vec.Point3
 	lookAt            vec.Point3
@@ -31,32 +33,35 @@ type Camera struct {
 }
 
 const (
-	FOCAL_LENGTH       = 1.0
-	SAMPLES_PER_PIXEL  = 100
+	SAMPLES_PER_PIXEL  = 10
 	PIXEL_SAMPLE_SCALE = 1.0 / float64(SAMPLES_PER_PIXEL)
 	MAX_DEPTH          = 120
-	// VFOV               = 55.0
+	DEFOCUS_ANGLE      = 0.6
+	FOCUS_DIST         = 10
 )
 
 // func NewCamera(aspectRatio float64, imageWidth int) Camera
 func NewCamera(aspectRatio float64, imageWidth int, vpov float64, lookFrom vec.Point3, lookAt vec.Point3, vUp vec.Vec3) Camera {
-	center := vec.Point3{X: 0, Y: 0, Z: 0}
+	center := lookFrom
 	var (
-		imageHeight       = int(math.Max(1, math.Floor(float64(imageWidth)/aspectRatio)))
-		focalLength       = lookFrom.Sub(lookAt).Length()
+		imageHeight = int(math.Max(1, math.Floor(float64(imageWidth)/aspectRatio)))
+		// focalLength       = lookFrom.Sub(lookAt).Length()
 		theta             = helpers.DegreesToRadians(vpov)
 		h                 = math.Tan(theta / 2)
-		viewportHeight    = h * 2 * focalLength
+		viewportHeight    = h * 2 * FOCUS_DIST
 		viewportWidth     = viewportHeight * (float64(imageWidth) / float64(imageHeight))
 		w                 = lookFrom.Sub(lookAt).Unit()
 		u                 = vUp.Cross(w).Unit()
 		v                 = w.Cross(u)
 		viewportU         = u.Scale(viewportWidth)
-		viewportV         = v.Scale(viewportHeight)
+		viewportV         = v.Scale(-viewportHeight)
 		pixelDeltaU       = viewportU.Divide(float64(imageWidth - 1))
 		pixelDeltaV       = viewportV.Divide(float64(imageHeight - 1))
-		viewportUpperLeft = center.Sub(v.Scale(focalLength)).Sub(viewportU.Divide(2)).Sub(viewportV.Divide(2))
+		viewportUpperLeft = center.Sub(w.Scale(FOCUS_DIST)).Sub(viewportU.Divide(2)).Sub(viewportV.Divide(2))
 		pixel00Loc        = viewportUpperLeft.Add(pixelDeltaU.Divide(2)).Add(pixelDeltaV.Divide(2))
+		defocusRadius     = FOCUS_DIST * math.Tan(helpers.DegreesToRadians(DEFOCUS_ANGLE/2))
+		defocusDiskU      = u.Scale(defocusRadius)
+		defocusDiskV      = v.Scale(defocusRadius)
 	)
 
 	return Camera{imageWidth: imageWidth, imageHeight: imageHeight,
@@ -65,6 +70,8 @@ func NewCamera(aspectRatio float64, imageWidth int, vpov float64, lookFrom vec.P
 		pixelDeltaV:       pixelDeltaV,
 		pixel00Loc:        pixel00Loc,
 		center:            lookFrom,
+		defocusDiskU: defocusDiskU,
+		defocusDiskV: defocusDiskV,
 	}
 }
 
@@ -104,8 +111,12 @@ func (camera Camera) GetRay(i, j int) raypkg.Ray {
 	offsetJ := rand.Float64() - 0.5
 
 	pixelCenter := camera.pixel00Loc.Add(camera.pixelDeltaV.Scale(float64(i) + offsetI)).Add(camera.pixelDeltaU.Scale(float64(j) + offsetJ))
-	rayDirection := pixelCenter.Sub(camera.center)
-	return raypkg.NewRay(camera.center, rayDirection)
+	rayOrigin := camera.DefocusDiskSample(camera.defocusDiskU, camera.defocusDiskV)
+	if DEFOCUS_ANGLE <= 0 {
+		rayOrigin = camera.center
+	}
+	rayDirection := pixelCenter.Sub(rayOrigin)
+	return raypkg.NewRay(rayOrigin, rayDirection)
 }
 
 func rayColor(ray raypkg.Ray, depth int, world hittable.Hittable) vec.Color {
@@ -134,4 +145,9 @@ func rayColor(ray raypkg.Ray, depth int, world hittable.Hittable) vec.Color {
 		blue  = vec.Color{X: 0.5, Y: 0.7, Z: 1.0}
 	)
 	return white.Scale(1.0 - a).Add(blue.Scale(a))
+}
+
+func (center Camera) DefocusDiskSample(defocusDiskU vec.Vec3, defocusDiskV vec.Vec3) vec.Point3 {
+	p := vec.RandomInUnitDisk()
+	return center.center.Add(defocusDiskU.Scale(p.X)).Add(defocusDiskV.Scale(p.Y))
 }

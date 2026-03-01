@@ -67,6 +67,6 @@ func run() {
 	topAccentSphere := sphere.NewSphere(vec.Point3{X: 0.00, Y: 0.95, Z: -2.55}, 0.35, accent)
 	world.Add(&topAccentSphere)
 
-	cameraInstance := camera.NewCamera(ASPECT_RATIO, IMAGE_WIDTH, 90, vec.Point3{X: 0, Y: 0, Z: 0}, vec.Point3{X: 0, Y: 0, Z: -1}, vec.Vec3{X: 0, Y: 1, Z: 0})
+	cameraInstance := camera.NewCamera(ASPECT_RATIO, IMAGE_WIDTH, 20, vec.Point3{X: 13, Y: 2, Z: 3}, vec.Point3{X: 0, Y: 0, Z: 0}, vec.Vec3{X: 0, Y: 1, Z: 0})
 	cameraInstance.Render(world)
 }

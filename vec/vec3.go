@@ -122,3 +122,12 @@ func (uv Vec3) Refract(n Vec3, etaiOverEtat float64) Vec3 {
 	rOutParallel := n.Scale(-math.Sqrt(math.Abs(1.0 - rOutPerp.LengthSquared())))
 	return rOutPerp.Add(rOutParallel)	
 }
+
+func RandomInUnitDisk() Vec3 {
+	for {
+		p := Vec3{X: RandomInterval(-1, 1), Y: RandomInterval(-1, 1), Z: 0}
+		if p.LengthSquared() < 1 {
+			return p
+		}
+	}
+}
